@@ -1,1 +1,1 @@
-# Zavr-ni-Rad---Aplikacija-za-vizualizaciju-bioinformati-kih-podataka
+FER - Zavrsni rad
