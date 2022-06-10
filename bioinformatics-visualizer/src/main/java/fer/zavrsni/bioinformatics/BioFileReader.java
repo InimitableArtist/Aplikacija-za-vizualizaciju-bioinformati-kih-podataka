@@ -250,8 +250,7 @@ public class BioFileReader {
 			
 			putReads(worker, l, entry.getKey());
 			
-			//Ovo ce sortirati očitanja prema poziciji sto ce kasnije olaksati izvođenje binarne pretrage
-			//jer nece biti potrebno opet sortirati listu ocitanja.
+			//Očitanja se sortiraju prema poziciji kako bi se mogla vizualizirati
 			mapOfReads.put(entry.getKey(), l);
 			Graph graph = new Graph(worker, screen.getRef().getSequenceLen(entry.getKey()), entry.getValue());
 			graphMap.put(entry.getKey(), graph);

@@ -62,6 +62,7 @@ public class BEDAnnotaionScreen extends JPanel{
 				
 			}
 			
+			//Ako je detektiran kliktaj miša na anotaciju, napravi nešto ovisno o kojoj tipci se radi.
 			public void mouseClicked(MouseEvent arg0) {
 				if (currentlySelectedAnnotation == null) {
 					return;
@@ -81,6 +82,7 @@ public class BEDAnnotaionScreen extends JPanel{
 			}
 		});
 		
+		//Provjerava pri svakom pomaku miša nalazi li se kursor trenutno na nekoj od anotacija.
 		this.addMouseMotionListener(new MouseMotionListener() {
 			
 			public void mouseMoved(MouseEvent arg0) {
