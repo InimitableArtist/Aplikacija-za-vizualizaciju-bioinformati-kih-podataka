@@ -210,7 +210,7 @@ public class RulerScreen extends JPanel{
 		getCIGARBtn.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent arg0) {
-				Read g = screen.getReadScreen().getCurrentlySelectedRead();
+				Read g = screen.getReads().getCurrentlySelectedRead();
 				System.out.println(g.toString());
 				
 			}

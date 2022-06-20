@@ -1,6 +1,7 @@
 package fer.zavrsni.bioinformatics;
 
 import java.awt.Toolkit;
+
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -19,6 +20,18 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import htsjdk.samtools.BAMIndex;
+import htsjdk.samtools.BAMIndexer;
+import htsjdk.samtools.BamFileIoUtils;
+import htsjdk.samtools.SAMException;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileSource;
+import htsjdk.samtools.util.CloserUtil;
+import htsjdk.samtools.util.IOUtil;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.ValidationStringency;
 
 import javax.swing.JButton;
 public class VisMenuBar extends JMenuBar {
@@ -155,12 +168,32 @@ public class VisMenuBar extends JMenuBar {
 				
 				if (choice == JFileChooser.APPROVE_OPTION) {
 					File chosenFile = fileChooser.getSelectedFile();
-					try {
-						BioFileReader.generateIndexBamFile(chosenFile);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					File output;
+					String path = chosenFile.getPath();
+					int lastSlash = path.lastIndexOf("/");
+					String baseFileName = path.substring(lastSlash + 1, path.length());
+					
+					if (baseFileName.endsWith(BamFileIoUtils.BAM_FILE_EXTENSION)) {
+						final int index = baseFileName.lastIndexOf(".");
+						output = new File(baseFileName.substring(0, index) + BAMIndex.BAMIndexSuffix);
+					} else {
+						output = new File(baseFileName + BAMIndex.BAMIndexSuffix);
 					}
+					
+					IOUtil.assertFileIsWritable(output);
+					final SamReader bam;
+					IOUtil.assertFileIsReadable(chosenFile);
+					
+					
+					bam = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.SILENT).enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS).open(chosenFile);
+					if (!bam.getFileHeader().getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)) {
+						throw new SAMException("Input bam file must be sorted by coordinates.");
+						
+					}
+					BAMIndexer.createIndex(bam, output);
+					CloserUtil.close(bam);
+					System.out.println("Index created!");
+					System.out.println(output.getAbsolutePath());
 				}
 				
 			}

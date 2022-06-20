@@ -86,6 +86,8 @@ public class ReadScreen extends JPanel {
 		});
 		this.addMouseMotionListener(new MouseMotionListener() {
 			
+			
+
 			public void mouseMoved(MouseEvent arg0) {
 				int xCoord = arg0.getX();
 				int yCoord = arg0.getY();
@@ -95,12 +97,12 @@ public class ReadScreen extends JPanel {
 				Read r = getReadHere(xCoord, yCoord);
 				if (r == null) {
 					setToolTipText("");
-					currentlySelectedRead = null;
+					ReadScreen.this.currentlySelectedRead = null;
 					return;
 				} 
 				//Ako se na trenutačnoj lokaciji kursora nalazi prikazano očitanje, ispiši u tooltip informacije o njemu
 				else {
-					currentlySelectedRead = r;
+					ReadScreen.this.setCurrentlySelectedRead(r);
 					String name = "Name: " + r.getReadName();
 					String AlignmentStart = "Alignment start: " + r.getPos();
 					String AlignmentEnd = "Alignment end: " + r.getAlignEnd();
