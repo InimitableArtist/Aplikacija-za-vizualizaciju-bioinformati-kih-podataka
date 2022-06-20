@@ -194,6 +194,8 @@ public class VisMenuBar extends JMenuBar {
 					CloserUtil.close(bam);
 					System.out.println("Index created!");
 					System.out.println(output.getAbsolutePath());
+					JOptionPane dialog = new JOptionPane();
+					dialog.showMessageDialog(null, "Index created.");
 				}
 				
 			}
