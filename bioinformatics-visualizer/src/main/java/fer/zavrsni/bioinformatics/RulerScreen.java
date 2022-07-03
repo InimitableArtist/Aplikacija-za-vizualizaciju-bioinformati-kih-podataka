@@ -65,6 +65,8 @@ public class RulerScreen extends JPanel{
 	
 	private int realPositionStart;
 	private int realPositionEnd;
+	private int maxZoomPairs = 35;
+	private int minZoomPairs = 1280;
 	
 	private static int mX = -1;
 	private static int mY = -1;
@@ -440,11 +442,21 @@ public class RulerScreen extends JPanel{
 			g.setColor(new Color(128, 128, 244, 200));
 			if (this.mX != -1 && this.mY != -1) {
 				int currentWidth = this.realPositionEnd - this.realPositionStart;
-				
-				g.fillRect(this.mX - (currentWidth / 2), lineH, currentWidth, 15);
+				int excess = 0;
+				//g.fillRect(this.mX - (currentWidth / 2), lineH, currentWidth, 15);
 				//currentWidth = this.realPositionEnd - this.realPositionStart;
 				int oneUnit = seqLen / dim.width;
 				int newXCoords = (int) (oneUnit * (this.mX - (currentWidth / 2)));
+				int newXcoordsEnd = (int) (oneUnit * (this.mX + (currentWidth / 2)));
+				if (newXcoordsEnd > seqLen) {
+					System.out.println("new end: " + newXcoordsEnd + " seq len: " + seqLen);
+					newXCoords = newXCoords - (newXcoordsEnd - seqLen);
+					excess = this.mX + (currentWidth / 2) - dim.width;
+				} else if (newXCoords < 0) {
+					newXCoords = 0;
+					excess = this.mX - (currentWidth / 2);
+				}
+				g.fillRect(this.mX - (currentWidth / 2) - (excess), lineH, currentWidth, 15);
 				onPositionChange(newXCoords);
 				Controller.onPositionChanged(newXCoords, Controller.getReadvPos());
 				

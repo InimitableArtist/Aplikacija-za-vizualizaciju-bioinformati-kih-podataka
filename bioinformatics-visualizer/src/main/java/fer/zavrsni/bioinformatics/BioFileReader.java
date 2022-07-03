@@ -44,6 +44,7 @@ import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
+import htsjdk.samtools.util.SequenceUtil.SequenceListsDifferException;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.bed.SimpleBEDFeature;
@@ -98,6 +99,7 @@ public class BioFileReader {
 				for (Entry entry : fastaFileFirst.entrySet()) {
 					String[] words = entry.getKey().toString().split("\\s+");
 					String refSequenceName = words[0];
+					sequencesList.add(refSequenceName);
 					fastaFile.put(refSequenceName, (DNASequence) entry.getValue());
 					
 				}
@@ -299,20 +301,26 @@ public class BioFileReader {
 	
 		String str;
 		FileReader fr;
-		
-
-		
+		int ind = -1;
+		String startRefName;
+		String currentName = "";
 		fr = new FileReader(file);
-		System.out.println("file: " + file.getPath());
+		
 		BufferedReader br = new BufferedReader(fr);
 		while ((str = br.readLine()) != null) {
-			System.out.println("Row: " + str);
 			String[] current = str.split("\\s+");
 			//check matches sequence
-			System.out.println("current; " + current[0]);
 			
 			ArrayList<BEDGap> gaps = new ArrayList<BEDGap>();
 			String chromName = current[0];
+			if (!chromName.toString().equals(currentName.toString())) {
+				System.out.println("chrom name: " + chromName + " current name: " + currentName);
+				currentName = chromName;
+				ind++;
+			}
+			System.out.println(sequencesList.get(0));
+			startRefName = sequencesList.get(ind);
+			chromName = startRefName;
 			int chromStart = Integer.parseInt(current[1]);
 			int chromEnd = Integer.parseInt(current[2]);
 			String lineName = current[3];
@@ -406,7 +414,7 @@ public class BioFileReader {
 		int nextAnn = 0;
 		int amp = -1;
 		int fFree = 0;
-		System.out.println("seq len: " + seqLen);
+		
 		//int seqLen = BioFileReader.screen.getRef().getSequenceLen(seqName);
 		for (int i = 0; i < seqLen; i++) {
 			for (int j = nextAnn; j < list.size(); j++) {
@@ -455,7 +463,6 @@ public class BioFileReader {
 		SortedMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
 		int nRead = 0;
 		int fFree = 0;
-		System.out.println("ref name: " + refName);
 		int sequenceLen = BioFileReader.screen.getRef().getSequenceLen(refName);
 		int listOfReadsLen = listOfReads.size();
 		

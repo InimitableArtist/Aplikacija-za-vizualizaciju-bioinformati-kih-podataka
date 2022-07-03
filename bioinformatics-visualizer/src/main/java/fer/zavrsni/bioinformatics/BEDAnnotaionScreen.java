@@ -252,7 +252,8 @@ public class BEDAnnotaionScreen extends JPanel{
 	}
 	
 	public ArrayList<BEDAnnotation> getCurrentAnnotations() {
-		return BedMap.get(BedMap.keySet().iterator().next());
+		//return BedMap.get(BedMap.keySet().iterator().next());
+		return BedMap.get(Controller.getCurrentSeq());
 	}
 
 	public MainScreen getScreen() {
