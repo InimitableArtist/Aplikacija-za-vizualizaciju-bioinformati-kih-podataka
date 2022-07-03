@@ -62,7 +62,7 @@ public class ColorPalette {
 	public static Color getReadColor(boolean reverse, boolean _gap) {
 		if(_gap) {
 			return Color.LIGHT_GRAY;
-		} else if (reverse) {
+		} else if (reverse) { 
 			return new Color(64, 249, 155);
 		} else {
 			return new Color(232, 93, 117);
@@ -101,7 +101,7 @@ public class ColorPalette {
 			
 		}
 		
-		if (counter[m] > Arrays.stream(counter).sum() / 2) {
+		if (counter[m] > Arrays.stream(counter).sum() / 3) {
 			switch(m) {
 			case 0:
 				return new Color(184, 180, 45);

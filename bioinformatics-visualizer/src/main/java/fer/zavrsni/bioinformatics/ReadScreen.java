@@ -3,6 +3,7 @@ package fer.zavrsni.bioinformatics;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Scrollbar;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -12,6 +13,7 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -144,7 +146,7 @@ public class ReadScreen extends JPanel {
 		showReads.clear();
 		//ArrayList<Read> currentReads = getCurrentReads();
 		if (readMap == null) {
-			System.out.println("Read map is null...");
+			//System.out.println("Read map is null...");
 			return;
 		}
 		if (getCurrentReads() == null) {
@@ -218,6 +220,7 @@ public class ReadScreen extends JPanel {
   			}
 		}
 		buildGraph(g);
+		
 	}
 	
 	private void buildGraph(Graphics g) {
@@ -399,4 +402,6 @@ public class ReadScreen extends JPanel {
 	public ArrayList<Read> getCurrentReads() {
 		return readMap.get(Controller.getCurrentSeq());
 	}
+	
+	
 }

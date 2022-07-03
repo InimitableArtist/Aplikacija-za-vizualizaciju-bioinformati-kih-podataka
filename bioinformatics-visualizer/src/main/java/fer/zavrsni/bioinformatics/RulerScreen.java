@@ -1,10 +1,13 @@
 package fer.zavrsni.bioinformatics;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -12,6 +15,10 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -29,15 +36,19 @@ import javax.swing.event.ChangeListener;
 
 import org.biojava.nbio.core.sequence.DNASequence;
 
+
+
 public class RulerScreen extends JPanel{
+
+	private final int MIN_WIDTH = 5;
 	
-	private int minZoomLevel = -6;
-	private int numZoomLevels = 5;
+	private int minZoomLevel = 0;
+	private int numZoomLevels = 10;
 	
 	public Dimension dim;
-	private MainScreen screen;
+	private static MainScreen screen;
 	private int zoom, XCoords;
-	private String currentSeq = "";
+	private static String currentSeq = "";
 	private JComboBox<String> chromSel;
 	private JPanel buttonControlPanel;
 	private JButton findAnnotationBtn;
@@ -51,6 +62,12 @@ public class RulerScreen extends JPanel{
 	
 	private Read prevRead;
 	private BEDAnnotation prevAnnotation;
+	
+	private int realPositionStart;
+	private int realPositionEnd;
+	
+	private static int mX = -1;
+	private static int mY = -1;
 	
 	public RulerScreen(final MainScreen screen) {
 		this.screen = screen;
@@ -83,7 +100,7 @@ public class RulerScreen extends JPanel{
 			public void stateChanged(ChangeEvent event) {
 				
 				RulerScreen.this.zoom = zoomSlider.getValue();
-				
+				 
 				
 				Controller.OnZoomChanged(RulerScreen.this.zoom);
 			}
@@ -145,15 +162,15 @@ public class RulerScreen extends JPanel{
 						matchedAnn.setGetHighlighted(true);
 						prevAnnotation.setGetHighlighted(false);
 						screen.getAnnotations().setyPosition(matchedAnn.getGraphicalPosition());
-						fer.zavrsni.bioinformatics.Controller.onPositionChanged(matchedAnn.getStart(), fer.zavrsni.bioinformatics.Controller.getReadvPos());
-						prevAnnotation = matchedAnn;
+						fer.zavrsni.bioinformatics.Controller.onPositionChanged((int) matchedAnn.getStart(), fer.zavrsni.bioinformatics.Controller.getReadvPos());
+						prevAnnotation = matchedAnn; 
 					}
 				});
 				
 				filterAnns.get(0).setGetHighlighted(true);
 				prevAnnotation = filterAnns.get(0);
 				screen.getAnnotations().setyPosition(filterAnns.get(0).getGraphicalPosition());
-				fer.zavrsni.bioinformatics.Controller.onPositionChanged(filterAnns.get(0).getStart(), fer.zavrsni.bioinformatics.Controller.getReadvPos());
+				fer.zavrsni.bioinformatics.Controller.onPositionChanged((int) filterAnns.get(0).getStart(), fer.zavrsni.bioinformatics.Controller.getReadvPos());
 				
 				JOptionPane.showMessageDialog(null, dialogObjects);
 				prevAnnotation.setGetHighlighted(false);
@@ -211,7 +228,69 @@ public class RulerScreen extends JPanel{
 			
 			public void actionPerformed(ActionEvent arg0) {
 				Read g = screen.getReads().getCurrentlySelectedRead();
-				System.out.println(g.toString());
+				//System.out.println(g.toString());
+				
+			}
+		});
+		
+		this.addMouseMotionListener(new MouseMotionListener() {
+			
+			@Override
+			public void mouseMoved(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseDragged(MouseEvent arg0) {
+				Point locationOnScreen = arg0.getPoint();
+				int mousePositionY = (int)locationOnScreen.getY();
+				if (mousePositionY >= (dim.height - 70) && mousePositionY <= (dim.height - 55)) {
+					RulerScreen.mX = (int)locationOnScreen.getX();
+					RulerScreen.mY = (int)locationOnScreen.getY();
+					//RulerScreen.onPositionChange(100);
+					repaint();
+				}
+				
+			}
+		});
+		
+		this.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				// TODO Auto-generated method stub 
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent event) {
+				Point locationOnScreen = event.getPoint();
+				int mousePositionY = (int)locationOnScreen.getY();
+				//System.out.println("y: " + mousePositionY);
+				if (mousePositionY >= (dim.height - 70) && mousePositionY <= (dim.height - 55)) {
+					RulerScreen.mX = (int)locationOnScreen.getX();
+					RulerScreen.mY = (int)locationOnScreen.getY();
+					//RulerScreen.onPositionChange(100);
+					repaint();
+				}
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				// TODO Auto-generated method stub
 				
 			}
 		});
@@ -230,7 +309,7 @@ public class RulerScreen extends JPanel{
 		dim = new Dimension();
 		
 		dim.width = screen.getDimensions().width;
-		dim.height = 110;
+		dim.height = 155;
 		buttonControlPanel.setMaximumSize(new Dimension(dim.width, 45));
 		this.setPreferredSize(dim);
 		//this.setVisible(true);
@@ -251,6 +330,7 @@ public class RulerScreen extends JPanel{
 	
 	public void onPositionChange(int XCoords) {
 		this.XCoords = XCoords;
+
 		repaint();
 	}
 	
@@ -281,7 +361,7 @@ public class RulerScreen extends JPanel{
 	public JLabel getBp() {
 		return bp;
 	}
-
+ 
 	public void setBp(JLabel bp) {
 		this.bp = bp;
 	}
@@ -292,7 +372,30 @@ public class RulerScreen extends JPanel{
 		else if (zoom > 0) {
 			return 1.0 / (5 * zoom);
 		} else {
-			return 1.0 * 5 * (-zoom);
+			if (zoom < -30) {
+				return 1.0 * 80 * (-zoom);
+			}
+			else if (zoom < -20) {
+				return 1.0 * 40 * (-zoom);
+			} else if (zoom < -15) {
+				return 1.0 * 25 * (-zoom);
+			}
+			else if (zoom < -10) {
+				return 1.0 * 15 * (-zoom);
+			} else if (zoom < -8) {
+				return 1.0 * 10 * (-zoom);
+			}
+				
+			else if (zoom < -5) {
+				return 1.0 * 7 * (-zoom);
+			}
+			else if (zoom < - 3) {
+				return 1.0 * 3 * (-zoom);
+			}
+			else {
+				return 1.0 * 1.2 * (-zoom);
+			}
+			
 		}
 	}
 	
@@ -308,7 +411,56 @@ public class RulerScreen extends JPanel{
 		super.paintComponent(g);
 		
 		if (Controller.fastaLoaded) {
-			int lineH = dim.height - 10;
+			if (this.minZoomLevel == 0) {
+				this.minZoomLevel = (int) - ((this.screen.getRef().getSequenceLen(this.currentSeq)) / 100000.0);
+				this.zoomSlider.setMinimum(this.minZoomLevel);
+			}
+			
+			int lineH = dim.height - 70;
+			g.drawRect(0, lineH, dim.width, 15);
+			g.setFont(new Font("Serif", Font.BOLD, 12));
+			g.drawString("0", 0, lineH + 13);
+			int seqLen = this.screen.getReference().getSequenceLen(this.currentSeq);
+			String seqLenStr = String.valueOf(seqLen);
+			int width = g.getFontMetrics().stringWidth(seqLenStr);
+			g.drawString(seqLenStr, dim.width - width, lineH + 13);
+			
+			int k = 1;
+			if (XCoords == 0) {
+				k = 0;
+			} else {
+				k = 1;
+			}
+			int posScreenStart = (int) (XCoords + k * getZoomMulti() * 100);
+			int posScreenEnd = (int) (XCoords + (dim.width * getZoomMulti()));
+			
+			
+			this.realPositionStart = (int)((float)posScreenStart/(float)seqLen * dim.width);
+			this.realPositionEnd = (int)((float)posScreenEnd/(float)seqLen * dim.width);
+			g.setColor(new Color(128, 128, 244, 200));
+			if (this.mX != -1 && this.mY != -1) {
+				int currentWidth = this.realPositionEnd - this.realPositionStart;
+				
+				g.fillRect(this.mX - (currentWidth / 2), lineH, currentWidth, 15);
+				//currentWidth = this.realPositionEnd - this.realPositionStart;
+				int oneUnit = seqLen / dim.width;
+				int newXCoords = (int) (oneUnit * (this.mX - (currentWidth / 2)));
+				onPositionChange(newXCoords);
+				Controller.onPositionChanged(newXCoords, Controller.getReadvPos());
+				
+				
+				//XCoords = XCoords * positionRatio;
+				//System.out.println("X coords: " + XCoords);
+				//this.onPositionChange(XCoords);
+				this.mX = -1;
+				this.mY = -1;
+				
+			} else {
+				g.fillRect(realPositionStart, lineH, realPositionEnd - realPositionStart, 15);
+			}
+			
+			lineH = dim.height - 20;
+			g.setColor(Color.BLACK);
 			g.fillRect(0, lineH, dim.width, 1);
 			for (int i = 0; i <= dim.width/100 + 1; i++) {
 				String str = "" + (int)(XCoords + (i * getZoomMulti()) * 100) + " bp";
@@ -316,11 +468,16 @@ public class RulerScreen extends JPanel{
 				int strPos = g.getFontMetrics().stringWidth(str);
 				
 				g.setFont(new Font("Serif", Font.BOLD, 12));
-				g.fillRect(linePos, lineH - 15, 1, 15);
-				g.drawString(str, linePos - strPos / 2, 80);
+				g.fillRect(linePos, lineH - 10, 1, 15);
+				g.drawString(str, linePos - strPos / 2, 120);
+			}
+			if(Controller.readsLoaded) {
+				//buildFullGraph(g);
 			}
 			
+			
 		}
+		
  		
 	}
 	public Dimension getDimension() {
@@ -349,6 +506,40 @@ public class RulerScreen extends JPanel{
 	
 	public void readSelected(boolean isItSelected) {
 		getCIGARBtn.setEnabled(isItSelected);
+	}
+public void buildFullGraph(Graphics g) { 
+		
+		Graph currentGraph = this.screen.getReadScreen().getCurrentGraph();
+		if (currentGraph == null) {
+			return;
+		}
+		int xOffset = 5;
+		int yOffset = 5;
+		int width = this.getWidth() - 1 - (xOffset * 2);
+		int height = this.getHeight() - 20 - (yOffset * 2);
+		Graphics2D g2d = (Graphics2D) g.create();
+		g2d.setColor(Color.DARK_GRAY);
+		g2d.drawRect(xOffset, yOffset, width, height);
+		int barWidth = Math.max(4, (int) Math.floor((float) currentGraph.getLen()));
+		int maxValue = 0;
+		int[] data = currentGraph.getData();
+		for (int i = 0; i < currentGraph.getLen(); i++) {
+			int value = data[i];
+			maxValue = Math.max(maxValue, value);
+		}
+		int xPos = xOffset;
+		for (int i = 0; i < currentGraph.getLen() - 1; i++) {
+			int value = data[i];
+			int barHeight = Math.round(((float) value / (float) maxValue) * height);
+			g2d.setColor(Color.BLACK);
+			int yPos = height + yOffset - barHeight;
+			Rectangle2D bar = new Rectangle2D.Float(xPos, yPos, barWidth, barHeight);
+			g2d.fill(bar);
+			g2d.setColor(Color.DARK_GRAY);
+			g2d.draw(bar);
+			xPos += barWidth;
+		}
+		g2d.dispose();
 	}
 	
 	

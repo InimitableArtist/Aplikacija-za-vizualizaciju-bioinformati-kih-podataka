@@ -7,7 +7,8 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
-
+import javax.swing.JSplitPane;
+import javax.swing.SwingConstants;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -18,6 +19,7 @@ public class MainScreen extends JFrame implements AWTEventListener{
 	private ReadScreen readScreen;
 	private RulerScreen rulerScreen;
 	private JPanel mainPanel;
+	private JSplitPane splitPanel;
 	private BEDAnnotaionScreen annotations;
 	
 	
@@ -65,16 +67,23 @@ public class MainScreen extends JFrame implements AWTEventListener{
 		this.rulerScreen = new RulerScreen(this);
 		this.reference = new Reference(this);
 		this.annotations = new BEDAnnotaionScreen(this);
+		this.splitPanel = new JSplitPane(SwingConstants.HORIZONTAL);
+		this.splitPanel.setTopComponent(readScreen);
+		this.splitPanel.setBottomComponent(annotations);
+		this.splitPanel.getTopComponent().setSize(splitPanel.getWidth(), splitPanel.getHeight());
 		Controller.setScreen(this);
-		Controller.setScreens(annotations, readScreen, rulerScreen, reference);
+		//Controller.setScreens(annotations, readScreen, rulerScreen, reference);
+		Controller.setScreens(splitPanel, rulerScreen, reference);
 		this.mainPanel = new JPanel();
 		
 		add(this.mainPanel, BorderLayout.CENTER);
 		this.mainPanel.setLayout(new BorderLayout());
-		this.mainPanel.add(readScreen, BorderLayout.CENTER);
-		this.mainPanel.add(annotations, BorderLayout.NORTH);
+		//this.mainPanel.add(readScreen, BorderLayout.CENTER);
+		//this.mainPanel.add(annotations, BorderLayout.NORTH);
 		add(rulerScreen, BorderLayout.NORTH);
 		add(reference, BorderLayout.SOUTH);
+		this.mainPanel.add(splitPanel, BorderLayout.CENTER);
+		
 		//this.add(mainPanel, BorderLayout.CENTER);
 		//mainPanel.setVisible(true);
 		//this.setVisible(true);

@@ -1,6 +1,7 @@
 package fer.zavrsni.bioinformatics;
 
 import java.awt.Color;
+import static htsjdk.tribble.AbstractFeatureReader.getFeatureReader;
 import java.awt.List;
 import java.awt.desktop.ScreenSleepEvent;
 import java.io.BufferedReader;
@@ -43,8 +44,12 @@ import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
+import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.bed.SimpleBEDFeature;
+import htsjdk.tribble.readers.LineIterator;
+import htsjdk.tribble.AbstractFeatureReader;
+import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.annotation.Strand;
 import org.biojava.nbio.core.sequence.DNASequence;
 
@@ -295,12 +300,16 @@ public class BioFileReader {
 		String str;
 		FileReader fr;
 		
+
+		
 		fr = new FileReader(file);
+		System.out.println("file: " + file.getPath());
 		BufferedReader br = new BufferedReader(fr);
 		while ((str = br.readLine()) != null) {
-			
+			System.out.println("Row: " + str);
 			String[] current = str.split("\\s+");
 			//check matches sequence
+			System.out.println("current; " + current[0]);
 			
 			ArrayList<BEDGap> gaps = new ArrayList<BEDGap>();
 			String chromName = current[0];
@@ -323,16 +332,30 @@ public class BioFileReader {
 				//feature.setStrand(Strand.toStrand(strand));
 			}
 			if (current.length >= 8) { 
-				thickStart = Integer.parseInt(current[6]);
-				thickEnd = Integer.parseInt(current[7]);
+				try {
+					thickStart = Integer.parseInt(current[6]);
+					thickEnd = Integer.parseInt(current[7]);
+				} catch (NumberFormatException e) {
+					//
+				}
+				
+				
+				
+
+				
 			}
 			if (current.length >= 9) {
 				if (!current[8].equals("0")) {
-					String[] clrs = current[8].split(",");
-					for (int i = 0; i < clrs.length; i++) {
-						rgb[i] = Integer.parseInt(clrs[i]);
+					try {
+						String[] clrs = current[8].split(",");
+						for (int i = 0; i < clrs.length; i++) {
+							rgb[i] = Integer.parseInt(clrs[i]);
+						}
+						color = new Color(rgb[0], rgb[1], rgb[2]);
+					} catch (NumberFormatException e) {
+						color = new Color(255, 255, 255);
 					}
-					color = new Color(rgb[0], rgb[1], rgb[2]);
+					
 					//feature.setColor(color);
 				}
 			}
@@ -350,17 +373,17 @@ public class BioFileReader {
 				}
 			}
 			Collections.sort(gaps);
-			if(bedMap.get(chromName) == null) {
+			if(bedMap.get(chromName) == null) { 
 				bedMap.put(chromName, new ArrayList<BEDAnnotation>());
 			}
-			bedMap.get(chromName).add(new BEDAnnotation(chromName, chromStart, chromEnd, strand, rgb, lineName, thickStart, thickEnd));
+			bedMap.get(chromName).add(new BEDAnnotation(chromName, chromStart, chromEnd, strand, color, lineName));
 		}
 		br.close();
-		
+		int refLen = BioFileReader.screen.getReference().getCurrentSeqLen();
 		for(Map.Entry<String, ArrayList<BEDAnnotation>> e : bedMap.entrySet()) {
 			ArrayList<BEDAnnotation> l = new ArrayList<BEDAnnotation>(e.getValue());
 			Collections.sort(l);
-			setLines(l, e.getKey());
+			setLines(l, refLen);
 			bedMap.put(e.getKey(), l);
 		}
 	}
@@ -378,12 +401,13 @@ public class BioFileReader {
 		BAMIndexer.createIndex(sr, indexFile);
 	}
 	
-	private static void setLines(ArrayList<BEDAnnotation> list, String seqName) {
+	private static void setLines(ArrayList<BEDAnnotation> list, int seqLen) {
 		SortedMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
 		int nextAnn = 0;
 		int amp = -1;
 		int fFree = 0;
-		int seqLen = BioFileReader.screen.getRef().getSequenceLen(seqName);
+		System.out.println("seq len: " + seqLen);
+		//int seqLen = BioFileReader.screen.getRef().getSequenceLen(seqName);
 		for (int i = 0; i < seqLen; i++) {
 			for (int j = nextAnn; j < list.size(); j++) {
 				if (list.get(j).getStart() > i) {
@@ -391,7 +415,7 @@ public class BioFileReader {
 				}
 				nextAnn++;
 				list.get(j).setGraphicalPosition(fFree);
-				map.put(fFree, list.get(j).getStart() + list.get(j).getLen());
+				map.put(fFree, (int) (list.get(j).getStart() + list.get(j).getLen()));
 				for (int k = fFree + 1; k <= list.size(); k++) {
 					if (!map.containsKey(k)) {
 						fFree = k;

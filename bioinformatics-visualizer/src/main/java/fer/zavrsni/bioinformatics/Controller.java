@@ -2,6 +2,8 @@ package fer.zavrsni.bioinformatics;
 
 import java.awt.Dimension;
 
+import javax.swing.JSplitPane;
+
 public class Controller {
 
 	static int xPosition = 0;
@@ -12,14 +14,16 @@ public class Controller {
 	static boolean readsLoaded = false;
 	static boolean annotationsLoaded = false;
 	static MainScreen screen;
-	static BEDAnnotaionScreen annotations;
-	static ReadScreen reads;
+	//static BEDAnnotaionScreen annotations;
+	//static ReadScreen reads;
+	static JSplitPane splitPanel;
 	static RulerScreen rulerScreen;
 	static Reference seq;
 	
-	public static void setScreens(BEDAnnotaionScreen annotations, ReadScreen reads, RulerScreen rulerScreen, Reference seq) {
-		Controller.annotations = annotations;
-		Controller.reads = reads;
+	public static void setScreens(JSplitPane splitPanel, RulerScreen rulerScreen, Reference seq) {
+		//Controller.annotations = annotations;
+		//Controller.reads = reads;
+		Controller.splitPanel = splitPanel;
 		Controller.rulerScreen = rulerScreen;
 		Controller.seq = seq;
 	}
@@ -31,15 +35,17 @@ public class Controller {
 	public static void repaintAll() {
 		rulerScreen.repaint();
 		seq.repaint();
-		reads.repaint();
-		annotations.repaint();
+		//reads.repaint();
+		//annotations.repaint();
+		splitPanel.repaint();
 	}
 	
 	public static void OnZoomChanged(int zoom) {
 		rulerScreen.onZoomChange(zoom);
 		seq.onZoomChanged(zoom);
-		reads.onZoomChanged(zoom);
-		annotations.onZoomChanged(zoom);
+		((BEDAnnotaionScreen) splitPanel.getBottomComponent()).onZoomChanged(zoom);
+		((ReadScreen) splitPanel.getTopComponent()).onZoomChanged(zoom);
+		//annotations.onZoomChanged(zoom);
 	}
 	
 	public static void onPositionChanged(int xPosition, int yPosition) {
@@ -54,8 +60,11 @@ public class Controller {
 		
 		rulerScreen.onPositionChange(Controller.xPosition);
 		seq.onPositionChanged(Controller.xPosition);
-		reads.onPositionChanged(Controller.xPosition, yPosition);
-		annotations.onPositionChnaged(Controller.xPosition);
+		//reads.onPositionChanged(Controller.xPosition, yPosition);
+		//annotations.onPositionChnaged(Controller.xPosition);
+		((BEDAnnotaionScreen) splitPanel.getBottomComponent()).onPositionChnaged(Controller.xPosition);
+		((ReadScreen) splitPanel.getTopComponent()).onPositionChanged(Controller.xPosition, yPosition);;
+		
 				
 	}
 	
@@ -66,8 +75,10 @@ public class Controller {
 		
 		rulerScreen.onSequenceChange(seq_);
 		seq.onSequenceChanged(seq_);
-		reads.onSequenceChanged();
-		annotations.onSequenceChanged(seq_);
+		((BEDAnnotaionScreen) splitPanel.getBottomComponent()).onSequenceChanged(seq_);
+		((ReadScreen) splitPanel.getTopComponent()).onSequenceChanged();
+		//reads.onSequenceChanged();
+		//annotations.onSequenceChanged(seq_);
 		
 		
 	}
@@ -82,14 +93,18 @@ public class Controller {
 		
 		rulerScreen.reset();
 		seq.reset();
-		reads.reset();
-		annotations.reset();
+		((BEDAnnotaionScreen) splitPanel.getBottomComponent()).reset();
+		((ReadScreen) splitPanel.getTopComponent()).reset();
+		//reads.reset();
+		//annotations.reset();
 	}
 	
 	public static void updateWindowSize() {
 		seq.setDimensions(new Dimension(screen.getDimensions().width, seq.getDimensions().height));
-		reads.setDim(new Dimension(screen.getDimensions().width, reads.getDim().height));
-		annotations.setDim(new Dimension(screen.getDimensions().width, annotations.getDim().height));
+		//reads.setDim(new Dimension(screen.getDimensions().width, reads.getDim().height));
+		//annotations.setDim(new Dimension(screen.getDimensions().width, annotations.getDim().height));
+		((BEDAnnotaionScreen) splitPanel.getBottomComponent()).setDim(new Dimension(screen.getDimensions().width, ((BEDAnnotaionScreen) splitPanel.getBottomComponent()).getDim().height));
+		((ReadScreen) splitPanel.getTopComponent()).setDim(new Dimension(screen.getDimensions().width, ((ReadScreen) splitPanel.getTopComponent()).getDim().height));
 		rulerScreen.setDimension(new Dimension(screen.getDimensions().width, rulerScreen.getDimension().height));
 		rulerScreen.onZoomChange(rulerScreen.getZoom());
 		repaintAll();
@@ -159,19 +174,23 @@ public class Controller {
 	}
 
 	public static BEDAnnotaionScreen getAnnotations() {
-		return annotations;
+		//return annotations;
+		return (BEDAnnotaionScreen) splitPanel.getBottomComponent();
 	}
 
 	public static void setAnnotations(BEDAnnotaionScreen annotations) {
-		Controller.annotations = annotations;
+		//Controller.annotations = annotations;
+		Controller.splitPanel.setBottomComponent(annotations);
 	}
 
 	public static ReadScreen getReads() {
-		return reads;
+		//return reads;
+		return (ReadScreen) splitPanel.getTopComponent();
 	}
 
 	public static void setReads(ReadScreen reads) {
-		Controller.reads = reads;
+		//Controller.reads = reads;
+		Controller.splitPanel.setTopComponent(reads);
 	}
 
 	public static RulerScreen getRulerScreen() {

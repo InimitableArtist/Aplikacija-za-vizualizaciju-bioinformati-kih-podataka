@@ -1,19 +1,20 @@
 package fer.zavrsni.bioinformatics;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
 
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.SimpleBEDFeature;
-public class BEDAnnotation extends SimpleBEDFeature implements Comparable<BEDAnnotation>{
+public class BEDAnnotation implements Comparable<BEDAnnotation>{
 	
 	private String chromName;
 	private String lineName;
-	private int chromStart;
-	private int chromEnd;
+	private long chromStart;
+	private long chromEnd;
 	private Strand strand;
-	private int[] rgb;
+	private Color rgb;
 	private int graphicalPosition;
 	private ArrayList<BEDGap> gaps = new ArrayList<BEDGap>();
 	
@@ -27,16 +28,13 @@ public class BEDAnnotation extends SimpleBEDFeature implements Comparable<BEDAnn
 	//highlighted
 	//find highlighted
 	
-	public BEDAnnotation(String chromName, int chromStart, int chromEnd, Strand strand, int[] rgb, String lineName, int thickStart, int thickEnd) {
-		super(chromStart, chromEnd, chromName);
+	public BEDAnnotation(String chromName, long chromStart, long chromEnd, Strand strand, Color rgb, String lineName) {
 		this.chromName = chromName;
 		this.chromStart = chromStart;
 		this.chromEnd = chromEnd;
 		this.strand = strand;
 		this.rgb = rgb;
 		this.lineName = lineName;
-		this.thickStart = thickStart;
-		this.thickEnd = thickEnd;
 	}
 	
 	public String getLineName() {
@@ -58,9 +56,9 @@ public class BEDAnnotation extends SimpleBEDFeature implements Comparable<BEDAnn
 	}
 	
 	public int compareTo(BEDAnnotation arg0) {
-		return this.chromStart - arg0.getChromStart();
+		return (int) (this.chromStart - arg0.getStart());
 	}
-	public int getLen() {
+	public long getLen() {
 		return this.chromEnd - this.chromStart;
 	}
 	public String getChromName() {
@@ -69,16 +67,16 @@ public class BEDAnnotation extends SimpleBEDFeature implements Comparable<BEDAnn
 	public void setChromName(String chromName) {
 		this.chromName = chromName;
 	}
-	public int getChromStart() {
+	public long getStart() {
 		return chromStart;
 	}
-	public void setChromStart(int chromStart) {
+	public void setStart(int chromStart) {
 		this.chromStart = chromStart;
 	}
-	public int getChromEnd() {
+	public long getEnd() {
 		return chromEnd;
 	}
-	public void setChromEnd(int chromEnd) {
+	public void setEnd(int chromEnd) {
 		this.chromEnd = chromEnd;
 	}
 	public Strand getStrand() {
@@ -87,10 +85,10 @@ public class BEDAnnotation extends SimpleBEDFeature implements Comparable<BEDAnn
 	public void setStrand(Strand strand) {
 		this.strand = strand;
 	}
-	public int[] getRgb() {
+	public Color getRgb() {
 		return rgb;
 	}
-	public void setRgb(int[] rgb) {
+	public void setRgb(Color rgb) {
 		this.rgb = rgb;
 	}
 

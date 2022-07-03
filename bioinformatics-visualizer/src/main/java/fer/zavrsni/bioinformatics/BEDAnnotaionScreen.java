@@ -3,6 +3,7 @@ package fer.zavrsni.bioinformatics;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.BorderLayout;
 import java.awt.Scrollbar;
 import java.awt.Toolkit;
@@ -16,9 +17,10 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-
+import javax.swing.border.BevelBorder;
 
 public class BEDAnnotaionScreen extends JPanel{
 	
@@ -31,6 +33,8 @@ public class BEDAnnotaionScreen extends JPanel{
 	private Scrollbar scrollbar;
 	private ArrayList<BEDAnnotation> showAnnotations = new ArrayList<BEDAnnotation>();
 	private BEDAnnotation currentlySelectedAnnotation;
+	private boolean drag = false;
+	private Point dragLocation = new Point();
 	
 	public BEDAnnotaionScreen(MainScreen screen) {
 		this.screen = screen;
@@ -38,17 +42,19 @@ public class BEDAnnotaionScreen extends JPanel{
 		dim.height = 50;
 		
 		setLayout(new BorderLayout());
+		setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 		this.setPreferredSize(dim);
 		
 		this.addMouseListener(new MouseListener() {
 			
 			public void mouseReleased(MouseEvent arg0) {
-				// TODO Auto-generated method stub
+				drag = false;
 				
 			}
 			
 			public void mousePressed(MouseEvent arg0) {
-				// TODO Auto-generated method stub
+				drag = true;
+				dragLocation = arg0.getPoint();
 				
 			}
 			
@@ -73,7 +79,7 @@ public class BEDAnnotaionScreen extends JPanel{
 				}
 				
 				if (SwingUtilities.isLeftMouseButton(arg0)) {
-					String name = "Name: " + currentlySelectedAnnotation.getName();
+					String name = "Name: " + currentlySelectedAnnotation.getLineName();
 					StringSelection stringSel = new StringSelection(name);
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					clipboard.setContents(stringSel, null);
@@ -158,8 +164,8 @@ public class BEDAnnotaionScreen extends JPanel{
 			}
 			showAnnotations.add(a);
 			int pos = 30 * a.getGraphicalPosition() - 30 * yPosition;
-			int rectStart = (int)((a.getChromStart() - xPosition) / zoomMulti);
-			int rectLen = (int)((a.getChromEnd() - a.getChromStart()) / zoomMulti);
+			int rectStart = (int)((a.getStart() - xPosition) / zoomMulti);
+			int rectLen = (int)((a.getEnd() - a.getStart()) / zoomMulti);
 			//System.out.println("chrom end: " + a.getChromEnd() + " chrom start: " + a.getChromStart() + " nesto: " + a.getChromName() + " nesto: " + a.getLineName());
 			
 			
@@ -246,7 +252,7 @@ public class BEDAnnotaionScreen extends JPanel{
 	}
 	
 	public ArrayList<BEDAnnotation> getCurrentAnnotations() {
-		return BedMap.get(Controller.getCurrentSeq());
+		return BedMap.get(BedMap.keySet().iterator().next());
 	}
 
 	public MainScreen getScreen() {

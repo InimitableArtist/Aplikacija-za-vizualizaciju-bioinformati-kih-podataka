@@ -21,12 +21,18 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.sun.xml.ws.message.stream.OutboundStreamHeader;
+
 import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.BAMIndexer;
 import htsjdk.samtools.BamFileIoUtils;
 import htsjdk.samtools.SAMException;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileSource;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.util.CloserUtil;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.SamReader;
@@ -163,35 +169,69 @@ public class VisMenuBar extends JMenuBar {
 		it.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
-				String[] extensions = {"bam"};
-				int choice = fileOpener("BAM files", extensions, it);
-				
+				String[] extensions = {"sam"};
+				int choice = fileOpener("SAM files", extensions, it);
 				if (choice == JFileChooser.APPROVE_OPTION) {
 					File chosenFile = fileChooser.getSelectedFile();
-					File output;
+					SamReader sr;
+					sr = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.SILENT).open(chosenFile);
+					SAMRecordIterator iterator = sr.iterator();
+					final SAMFileHeader header = sr.getFileHeader().clone();
+					header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
+					final SAMFileWriterFactory fact = new SAMFileWriterFactory();
+					
+					File outputBAM;
 					String path = chosenFile.getPath();
 					int lastSlash = path.lastIndexOf("/");
 					String baseFileName = path.substring(lastSlash + 1, path.length());
+					int index = baseFileName.lastIndexOf(".");
+					outputBAM = new File(baseFileName.substring(0, index) + BamFileIoUtils.BAM_FILE_EXTENSION);
+					
+					
+					try (SAMFileWriter writer = fact.makeBAMWriter(header, false, outputBAM)) {
+						while (iterator.hasNext()) {
+							final SAMRecord record = iterator.next();
+
+							writer.addAlignment(record);
+
+						}
+						writer.close();
+					}
+					System.out.println("Saved at: " + baseFileName.substring(0, index) + BamFileIoUtils.BAM_FILE_EXTENSION);
+					
+					
+					
+					File output;
+					File bamSorted;
+					path = outputBAM.getPath();
+					lastSlash = path.lastIndexOf("/");
+					baseFileName = path.substring(lastSlash + 1, path.length());
 					
 					if (baseFileName.endsWith(BamFileIoUtils.BAM_FILE_EXTENSION)) {
-						final int index = baseFileName.lastIndexOf(".");
-						output = new File(baseFileName.substring(0, index) + BAMIndex.BAMIndexSuffix);
+						index = baseFileName.lastIndexOf(".");
+						output = new File(baseFileName.substring(0, index) + ".sorted" + BAMIndex.BAMIndexSuffix);
+						bamSorted = new File(baseFileName.substring(0, index) + ".sorted" + BamFileIoUtils.BAM_FILE_EXTENSION);
 					} else {
-						output = new File(baseFileName + BAMIndex.BAMIndexSuffix);
+						output = new File(baseFileName + ".sorted" + BAMIndex.BAMIndexSuffix);
+						bamSorted = new File(baseFileName + ".sorted" + BamFileIoUtils.BAM_FILE_EXTENSION);
 					}
 					
 					IOUtil.assertFileIsWritable(output);
 					final SamReader bam;
-					IOUtil.assertFileIsReadable(chosenFile);
+					IOUtil.assertFileIsReadable(outputBAM);
+					
+					BAMSorter sorter = new BAMSorter(outputBAM, bamSorted);
+					sorter.run();
 					
 					
-					bam = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.SILENT).enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS).open(chosenFile);
+					bam = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.SILENT).enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS).open(outputBAM);
 					if (!bam.getFileHeader().getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)) {
 						throw new SAMException("Input bam file must be sorted by coordinates.");
 						
 					}
 					BAMIndexer.createIndex(bam, output);
 					CloserUtil.close(bam);
+					CloserUtil.close(outputBAM);
 					System.out.println("Index created!");
 					System.out.println(output.getAbsolutePath());
 					JOptionPane dialog = new JOptionPane();

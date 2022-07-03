@@ -47,7 +47,7 @@ public class Reference extends JPanel {
 					g.fillRect(i, dim.height - 40, 1, 40);
 				}
 			} else {
-				int fontSize = (zoom - 1) * 10;
+				int fontSize = (zoom - 1) * 5;
 				g.setFont(new Font("Serif", Font.BOLD, fontSize));
 				for (int i = 0; i < dim.width / fontSize; i++) {
 					//System.out.println(currentSeq.charAt(i + xPosition));
